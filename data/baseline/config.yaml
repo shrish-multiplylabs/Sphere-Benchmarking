@@ -1,0 +1,64 @@
+# Baseline benchmark: 8 CAD models × foam / MorphIt-V / MorphIt-B × sphere counts
+# Run: bash scripts/run_baseline_benchmark.sh
+
+surface_epsilon_m: 0.001
+
+sphere_counts:
+  - 8
+  - 12
+  - 16
+  - 24
+  - 32
+
+methods:
+  - foam
+  - morphit-v
+  - morphit-b
+  # - vssa   # disabled — too slow for grid benchmark; run manually if needed
+
+meshes:
+  synthetic: []
+  cad:
+    - name: bracket
+      path: cad_models/bracket.stl
+    - name: car
+      path: cad_models/car.stl
+    - name: curve
+      path: cad_models/curve.stl
+    - name: cylinder
+      path: cad_models/cylinder.stl
+    - name: foot
+      path: cad_models/foot.stl
+    - name: hub
+      path: cad_models/hub.stl
+    - name: mini_cow
+      path: cad_models/mini_cow.stl
+    - name: nut
+      path: cad_models/nut.stl
+
+method_options:
+  foam:
+    method: medial
+    depth_by_n:
+      8:  {depth: 1, branch: 4}
+      12: {depth: 2, branch: 3}
+      16: {depth: 2, branch: 4}
+      24: {depth: 2, branch: 6}
+      32: {depth: 2, branch: 8}
+  vssa:
+    seed: 42
+    inner: 300
+    surface: 150
+    mutate: 3
+    final: 8000
+  morphit-v:
+    variant: MorphIt-V
+    iterations: 300
+    seed: 0
+  morphit-b:
+    variant: MorphIt-B
+    iterations: 300
+    seed: 0
+
+save_comparisons: true
+comparison_sphere_count: 16

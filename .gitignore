@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.DS_Store
+.env
+
+# Proprietary production geometry — never commit
+data/private/
+docs/meshes/private/
+docs/viewer/data/private*.json

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <title>Sphere Coverage Viewer</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="layout">
+    <aside id="sidebar">
+      <div>
+        <h1 id="title">Sphere Coverage Viewer</h1>
+        <p class="subtitle">CAD mesh + sphere approximation overlays</p>
+      </div>
+
+      <div>
+        <label for="mesh-select">Object</label>
+        <select id="mesh-select"></select>
+      </div>
+
+      <div>
+        <label for="count-select">Sphere count</label>
+        <select id="count-select"></select>
+      </div>
+
+      <div>
+        <label>Click through views</label>
+        <div id="method-steps"></div>
+      </div>
+
+      <div id="info-panel">Loading…</div>
+
+      <p id="nav-hint">
+        Use the buttons above or <strong>← →</strong> arrow keys to step through:
+        CAD → foam → MorphIt-V → MorphIt-B.<br><br>
+        Drag to rotate · scroll to zoom · right-drag to pan.
+      </p>
+    </aside>
+
+    <main id="canvas-wrap">
+      <div id="hud"></div>
+      <div id="loading">Loading…</div>
+    </main>
+  </div>
+
+  <script type="module" src="viewer.js"></script>
+</body>
+</html>

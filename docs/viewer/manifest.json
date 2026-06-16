@@ -1,0 +1,61 @@
+{
+  "title": "Sphere approximation benchmark viewer",
+  "built_at": "2026-06-16T16:26:02Z",
+  "methods": [
+    "foam",
+    "morphit-v",
+    "morphit-b"
+  ],
+  "method_labels": {
+    "foam": "foam (AMAA)",
+    "morphit-v": "MorphIt-V",
+    "morphit-b": "MorphIt-B"
+  },
+  "sphere_counts": [
+    8,
+    12,
+    16,
+    24,
+    32
+  ],
+  "meshes": [
+    {
+      "name": "bracket",
+      "file": "data/bracket.json"
+    },
+    {
+      "name": "car",
+      "file": "data/car.json"
+    },
+    {
+      "name": "curve",
+      "file": "data/curve.json"
+    },
+    {
+      "name": "cylinder",
+      "file": "data/cylinder.json"
+    },
+    {
+      "name": "foot",
+      "file": "data/foot.json"
+    },
+    {
+      "name": "hub",
+      "file": "data/hub.json"
+    },
+    {
+      "name": "mini_cow",
+      "file": "data/mini_cow.json"
+    },
+    {
+      "name": "nut",
+      "file": "data/nut.json"
+    }
+  ],
+  "colors": {
+    "cad": "#6BAED6",
+    "foam": "#E07B39",
+    "morphit-v": "#9467BD",
+    "morphit-b": "#1F77B4"
+  }
+}

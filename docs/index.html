@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sphere Approximation Benchmark</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 920px; margin: 0 auto; padding: 32px 24px;
+           background: #f4f6f9; color: #1a1a2e; line-height: 1.55; }
+    h1 { margin-bottom: 8px; }
+    .lead { color: #5c6370; margin-bottom: 28px; }
+    .card { background: #fff; border: 1px solid #d8dee9; border-radius: 10px; padding: 20px 24px;
+            margin-bottom: 20px; }
+    a.btn { display: inline-block; background: #1976d2; color: #fff; text-decoration: none;
+            padding: 12px 20px; border-radius: 8px; font-weight: 600; margin-top: 8px; }
+    a.btn:hover { background: #1565c0; }
+    img { max-width: 100%; border-radius: 8px; border: 1px solid #d8dee9; margin: 12px 0; }
+    ul { padding-left: 1.2rem; }
+  </style>
+</head>
+<body>
+  <h1>Sphere approximation benchmark</h1>
+  <p class="lead">Compare foam (AMAA), MorphIt-V, and MorphIt-B on eight public CAD baseline meshes.
+     Use the interactive viewer to step through original geometry and sphere overlays by method and sphere count n.</p>
+
+  <div class="card">
+    <h2>Interactive 3D viewer</h2>
+    <p>Step through CAD → foam → MorphIt-V → MorphIt-B with arrow keys. Select object and sphere count n.</p>
+    <a class="btn" href="viewer/">Open viewer →</a>
+  </div>
+
+  <div class="card">
+    <h2>CAD baseline summary</h2>
+    <ul>
+      <li><strong>foam</strong> — often 100% surface coverage; slowest build</li>
+      <li><strong>MorphIt-V</strong> — fast; strong on convex-ish parts</li>
+      <li><strong>MorphIt-B</strong> — tightest extra volume; coverage drops on concave shapes (e.g. car ~68–73%)</li>
+    </ul>
+    <img src="images/avg_surface_coverage_by_n.png" alt="Average surface coverage vs sphere count (CAD baselines)">
+    <img src="images/avg_extra_volume_by_n.png" alt="Average extra volume vs sphere count (CAD baselines)">
+  </div>
+
+  <div class="card">
+    <h2>Data</h2>
+    <p>Raw metrics: <code>data/baseline/metrics.csv</code></p>
+    <p>Full write-up: <a href="../README.md">README.md</a></p>
+  </div>
+</body>
+</html>
