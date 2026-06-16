@@ -1,98 +1,104 @@
-# Sphere approximation — benchmark results
+# Benchmarking sphere approximation for collision planning
 
-Comparison of **foam (AMAA)**, **MorphIt-V**, and **MorphIt-B** for approximating CAD meshes with collision spheres (target: Isaac cuMotion offline planning).
+I needed to approximate triangle meshes as unions of spheres for **Isaac cuMotion** offline motion planning. The planner cares about two things: whether the sphere union **covers the mesh surface** (gaps cause collisions to be missed), and how much **extra volume** the approximation adds (inflated obstacles shrink the feasible workspace).
 
-## Live interactive viewer
+I compared three approaches on eight public CAD baseline meshes:
 
-Open the **3D viewer** from the site landing page (`docs/index.html`) after deploying static hosting.
+| Method | Description |
+|--------|-------------|
+| **foam** (AMAA) | Medial-axis sphere tree via [foam](https://github.com/InteractiveComputerGraphics/foam) |
+| **MorphIt-V** | Variable-radius spheres, volume-oriented variant |
+| **MorphIt-B** | Variable-radius spheres, tightness-oriented variant |
+| **VSSA** | Volume-minimizing sphere sets (evaluated, not included in final comparison) |
 
-Step through **CAD → foam → MorphIt-V → MorphIt-B** with ← → keys. Select one of eight CAD baseline meshes and sphere count n.
-
----
-
-## Conclusion (CAD baselines)
-
-| Method | Coverage | Extra volume | Speed |
-|--------|----------|--------------|-------|
-| **foam** | Often 100% on baselines | Highest | Slowest |
-| **MorphIt-V** | Strong on simple/convex parts | Moderate | Fast (~seconds) |
-| **MorphIt-B** | Drops on concave parts (car ~68–73%) | **Lowest** | Fast (~seconds) |
-
-**foam** is the safest choice when surface coverage matters more than build time. **MorphIt-B** minimizes extra collision volume but leaves gaps on concave geometry — risky for motion planning.
-
-VSSA was evaluated and **excluded** (too slow, fragile mesh prep, benchmark stalled on grid runs).
+Sphere counts tested: **n = 8, 12, 16, 24, 32**. Surface tolerance ε = 1 mm.
 
 ---
 
-## Methods
+## Interactive viewer
 
-| Method | Strength | Weakness |
-|--------|----------|----------|
-| **foam** | Best coverage on difficult shapes | Slow; indirect sphere count (depth/branch) |
-| **MorphIt-V** | Fast, good on simple CAD | Inconsistent on concave / thin features |
-| **MorphIt-B** | Tightest extra volume | Low coverage on concave / complex shapes |
-| **VSSA** | Strong SOV minimization (paper) | Grid benchmark stalled; mesh prep + tuning burden |
+**[Open the 3D viewer →](https://shrish-multiplylabs.github.io/Sphere-Benchmarking/viewer/)**
 
-Metrics (ε = 1 mm surface tolerance): `surface_coverage_pct`, `extra_volume_pct`, `outside_volume_pct`, `runtime_s`.
+Select a mesh and sphere count, then step through **CAD → foam → MorphIt-V → MorphIt-B** with the arrow keys (or the buttons). Each step overlays the sphere approximation on the original geometry so you can see where coverage holds and where it breaks down.
+
+Meshes: bracket, car, cylinder, curve, foot, hub, mini_cow, nut.
 
 ---
 
-## CAD baseline (`data/baseline/metrics.csv`)
+## My conclusion
 
-Eight models: bracket, car, cylinder, curve, foot, hub, mini_cow, nut at n=8, 12, 16, 24, 32.
+**Use foam when surface coverage is the priority.** Build time is seconds to tens of seconds on these baselines and is acceptable for offline preprocessing — runtime at planning time is not the bottleneck.
 
-Aggregate plots: `data/baseline/graphs/`, mirrored under `docs/images/` for the landing page.
+**MorphIt is fast but unreliable on concave geometry.** MorphIt-B produces the tightest sphere unions (lowest extra volume) but leaves large uncovered regions on shapes like the car model (~68–74% coverage even at n = 32). That is unsafe for collision planning: the robot can plan paths that intersect the real mesh.
 
----
+**MorphIt-V sits in the middle** — good on convex-ish parts, weak on thin or concave features (e.g. 54% coverage on curve at n = 8).
 
-## VSSA — excluded
-
-| Issue | Detail |
-|-------|--------|
-| Too slow | Benchmark stalled on `vssa / bracket / n=8` |
-| Mesh prep | Separate watertight manifold OBJ required |
-| Fragile | GCC patches, normal sensitivity |
+**VSSA was not viable** for this workflow: mesh preparation requires a separate watertight manifold OBJ, the implementation is fragile, and the grid benchmark stalled before completing even the first configuration.
 
 ---
 
-## Repository layout
+## Aggregate results
 
-```
-data/
-  baseline/metrics.csv, graphs/   # CAD benchmark
-docs/                           # static site
-  index.html                    # landing + summary
-  viewer/                       # Three.js interactive viewer (CAD only)
-  images/                       # aggregate CAD plots
-  meshes/cad/                   # STL inputs for viewer
-scripts/
-  build_site.py                 # refresh site from local benchmark outputs
-```
+Across all successful runs on the eight CAD baselines:
 
----
+| Method | Avg surface coverage | Avg extra volume | Avg build time |
+|--------|---------------------|------------------|----------------|
+| **foam** | **99.9%** | 177% | 26 s |
+| MorphIt-V | 94.9% | 150% | 3 s |
+| MorphIt-B | 94.2% | **95%** | 3 s |
 
-## Rebuilding the site
+foam hit ≥ 99.9% coverage in **36 of 40** runs. MorphIt-V did so in 11 of 40; MorphIt-B in 5 of 40.
 
-This repo holds **frozen** benchmark exports. To refresh CAD baseline data, re-run the benchmark harness locally and export:
+### Surface coverage vs sphere count
 
-```bash
-BENCHMARK_SOURCE=~/path/to/benchmark-checkout python3 scripts/build_site.py
-```
+![Average surface coverage by sphere count](docs/images/avg_surface_coverage_by_n.png)
 
-The build script exports **CAD baselines only**.
+foam maintains near-perfect coverage at every n. MorphIt methods improve with more spheres but never consistently match foam, especially on concave parts.
+
+### Extra collision volume vs sphere count
+
+![Average extra volume by sphere count](docs/images/avg_extra_volume_by_n.png)
+
+MorphIt-B adds the least extra volume — the trade-off is the coverage gaps visible in the viewer. foam adds more volume but envelopes the surface reliably.
 
 ---
 
-## Static site hosting
+## Observations by mesh type
 
-Deploy the `docs/` folder via GitHub Pages, internal nginx, or similar.
+**Simple / convex (cylinder, nut, hub):** All three methods perform well. MorphIt-B is attractive here if you can verify coverage per mesh.
 
-1. Push this repo to `main`
-2. GitHub → **Settings → Pages** → Deploy from branch `main`, folder **`/docs`**
-3. Viewer URL: `https://<org>.github.io/Sphere-Benchmarking/viewer/`
+**Concave (car):** The clearest failure mode. MorphIt-B stays at 68–74% coverage across all n; foam stays at ~100%. This is the case that drove my method choice.
+
+**High-detail thin features (curve):** MorphIt-V struggles early (54% at n = 8); foam reaches 100% immediately.
+
+**General CAD (bracket, foot, mini_cow):** foam is consistently at or near 100%. MorphIt methods are usable on some meshes at higher n but require per-mesh validation.
 
 ---
 
-## Production pipeline
+## Metrics
 
-Isaac cuMotion deployment (foam → XRDF → docker) lives in a separate private production repo.
+Each run records:
+
+- `surface_coverage_pct` — fraction of mesh surface within ε of the sphere union
+- `extra_volume_pct` — volume of the union minus mesh volume, relative to mesh volume
+- `runtime_s` — offline build time
+
+Full results: [`data/baseline/metrics.csv`](data/baseline/metrics.csv)
+
+---
+
+## Methods not included
+
+**VSSA** ([paper](https://gamma-web.iacs.umd.edu/vssa/)) minimizes sphere count for a given overlap volume and is theoretically strong, but in practice:
+
+- Requires watertight manifold input (extra conversion step per mesh)
+- Sensitive to mesh normals and compiler/toolchain issues
+- Grid benchmark did not complete in reasonable time (`vssa / bracket / n=8` stalled)
+
+I excluded it from the comparison rather than report incomplete data.
+
+---
+
+## Context
+
+This benchmark supports sphere-based collision geometry for **NVIDIA Isaac cuMotion** on a UR manipulator. Sphere unions are exported to XRDF for the planner. The interactive viewer and CSV data in this repository are the complete public record of the CAD baseline study.
